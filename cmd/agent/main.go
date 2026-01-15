@@ -19,6 +19,7 @@ import (
 	"github.com/unitechio/agent/internal/identity"
 	"github.com/unitechio/agent/internal/policy"
 	"github.com/unitechio/agent/internal/scheduler"
+	"github.com/unitechio/agent/internal/sse"
 )
 
 const version = "1.0.0"
@@ -64,6 +65,13 @@ func main() {
 }
 
 func run(ctx context.Context, configPath string, logger *log.Logger) error {
+	// Start SSE server early (before bootstrap) so it's always available for testing
+	sseConfig := sse.DefaultServerConfig()
+	sseConfig.HeartbeatInterval = 1 * time.Second // Heartbeat mỗi 1 giây
+	sseServer := sse.NewServer(sseConfig, logger)
+	sseServer.StartBackground(ctx)
+	logger.Println("SSE server started on :9000 (available at http://localhost:9000/sse)")
+
 	// Step 1: Try to load existing config
 	cfg, err := config.Load(configPath)
 
@@ -167,7 +175,7 @@ func run(ctx context.Context, configPath string, logger *log.Logger) error {
 
 	logger.Println("Agent running successfully")
 
-	// Step 14: Periodically refresh policy and check for updates
+	// Step 15: Periodically refresh policy and check for updates
 	ticker := time.NewTicker(5 * time.Minute)
 	defer ticker.Stop()
 
@@ -179,6 +187,9 @@ func run(ctx context.Context, configPath string, logger *log.Logger) error {
 			// Stop components gracefully
 			sched.Stop()
 			healthMonitor.Stop()
+			if err := sseServer.Shutdown(); err != nil {
+				logger.Printf("Error shutting down SSE server: %v", err)
+			}
 
 			return nil
 
