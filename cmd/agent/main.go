@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net/http" // Thêm thư viện http
 	"os"
 	"os/exec"
 	"os/signal"
@@ -65,12 +66,33 @@ func main() {
 }
 
 func run(ctx context.Context, configPath string, logger *log.Logger) error {
-	// Start SSE server early (before bootstrap) so it's always available for testing
-	sseConfig := sse.DefaultServerConfig()
-	sseConfig.HeartbeatInterval = 1 * time.Second // Heartbeat mỗi 1 giây
-	sseServer := sse.NewServer(sseConfig, logger)
-	sseServer.StartBackground(ctx)
-	logger.Println("SSE server started on :9000 (available at http://localhost:9000/sse)")
+	// =========================================================================
+	// SSE SETUP (UPDATED)
+	// =========================================================================
+
+	// 1. Khởi tạo SSE Logic Handler (Thư viện mới)
+	sseHandler := sse.NewServer(10)
+
+	// 2. Thiết lập HTTP Server để lắng nghe
+	mux := http.NewServeMux()
+	mux.Handle("/sse", sseHandler) // Gắn SSE vào route /sse
+
+	httpServer := &http.Server{
+		Addr:    ":9000",
+		Handler: mux,
+	}
+
+	// 3. Chạy HTTP Server trong goroutine riêng
+	go func() {
+		logger.Println("SSE server started on :9000 (available at http://localhost:9000/sse)")
+		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			logger.Printf("Error starting SSE HTTP server: %v", err)
+		}
+	}()
+
+	// =========================================================================
+	// BOOTSTRAP & CONFIG
+	// =========================================================================
 
 	// Step 1: Try to load existing config
 	cfg, err := config.Load(configPath)
@@ -82,8 +104,7 @@ func run(ctx context.Context, configPath string, logger *log.Logger) error {
 		// Step 3: Create minimal bootstrap config from environment
 		cfg = config.NewBootstrapConfig()
 
-		// DEBUG: Log values being used for bootstrap
-		logger.Printf("DEBUG: Loaded bootstrap config: OrgID='%s', InstallToken='%s'(len:%d)", cfg.OrgID, cfg.InstallToken, len(cfg.InstallToken))
+		logger.Printf("DEBUG: Loaded bootstrap config: OrgID='%s', InstallToken='%s'", cfg.OrgID, cfg.InstallToken)
 
 		if err := cfg.ValidateBootstrap(); err != nil {
 			return fmt.Errorf("bootstrap validation failed: %w\nPlease set ORG_ID and INSTALL_TOKEN environment variables", err)
@@ -103,7 +124,6 @@ func run(ctx context.Context, configPath string, logger *log.Logger) error {
 		logger.Println("Bootstrap successful, configuration saved")
 
 	} else if err != nil {
-		// Step 6: Config load failed for other reasons
 		return fmt.Errorf("failed to load configuration: %w", err)
 	}
 
@@ -113,6 +133,10 @@ func run(ctx context.Context, configPath string, logger *log.Logger) error {
 	}
 
 	logger.Printf("Configuration loaded successfully (Agent ID: %s)", cfg.AgentID)
+
+	// =========================================================================
+	// COMPONENTS INITIALIZATION
+	// =========================================================================
 
 	// Step 8: Initialize identity manager
 	identityMgr, err := identity.NewManager(cfg, logger)
@@ -124,24 +148,20 @@ func run(ctx context.Context, configPath string, logger *log.Logger) error {
 	if identityMgr.NeedsRebootstrap() {
 		logger.Println("Certificate expired or invalid, re-bootstrapping...")
 
-		// Re-bootstrap
-		cfg.Bootstrapped = false // Reset bootstrap state
+		cfg.Bootstrapped = false
 		cfg, err = identity.RunBootstrap(ctx, cfg)
 		if err != nil {
 			return fmt.Errorf("re-bootstrap failed: %w", err)
 		}
 
-		// Save updated config
 		if err := cfg.Save(configPath); err != nil {
 			logger.Printf("Warning: failed to save config after re-bootstrap: %v", err)
 		}
 
-		// Recreate identity manager with new certs
 		identityMgr, err = identity.NewManager(cfg, logger)
 		if err != nil {
 			return fmt.Errorf("failed to recreate identity manager: %w", err)
 		}
-
 		logger.Println("Re-bootstrap successful")
 	}
 
@@ -149,7 +169,6 @@ func run(ctx context.Context, configPath string, logger *log.Logger) error {
 	if err := identityMgr.VerifyIdentity(); err != nil {
 		return fmt.Errorf("identity verification failed: %w", err)
 	}
-
 	logger.Printf("Identity verified: Agent ID = %s", identityMgr.GetAgentID())
 
 	// Step 11: Initialize policy engine
@@ -158,7 +177,6 @@ func run(ctx context.Context, configPath string, logger *log.Logger) error {
 		return fmt.Errorf("failed to create policy engine: %w", err)
 	}
 
-	// Fetch initial policy
 	if err := policyEngine.Refresh(ctx); err != nil {
 		logger.Printf("Warning: failed to fetch initial policy, using defaults: %v", err)
 	}
@@ -175,7 +193,10 @@ func run(ctx context.Context, configPath string, logger *log.Logger) error {
 
 	logger.Println("Agent running successfully")
 
-	// Step 15: Periodically refresh policy and check for updates
+	// =========================================================================
+	// MAIN LOOP & SHUTDOWN
+	// =========================================================================
+
 	ticker := time.NewTicker(5 * time.Minute)
 	defer ticker.Stop()
 
@@ -187,8 +208,18 @@ func run(ctx context.Context, configPath string, logger *log.Logger) error {
 			// Stop components gracefully
 			sched.Stop()
 			healthMonitor.Stop()
-			if err := sseServer.Shutdown(); err != nil {
-				logger.Printf("Error shutting down SSE server: %v", err)
+
+			// SSE Cleanup:
+			// 1. Dừng logic SSE (heartbeat, channel)
+			sseHandler.Shutdown()
+
+			// 2. Dừng HTTP Listener
+			shutdownCtx, cancelShutdown := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancelShutdown()
+			if err := httpServer.Shutdown(shutdownCtx); err != nil {
+				logger.Printf("Error shutting down HTTP server: %v", err)
+			} else {
+				logger.Println("SSE HTTP server stopped")
 			}
 
 			return nil
@@ -202,6 +233,7 @@ func run(ctx context.Context, configPath string, logger *log.Logger) error {
 	}
 }
 
+// ... (Các hàm helper getDefaultConfigPath, onReady, openBrowser giữ nguyên)
 func getDefaultConfigPath() string {
 	if path := os.Getenv("AGENT_CONFIG"); path != "" {
 		return path
@@ -257,4 +289,5 @@ func openBrowser(url string) {
 
 	_ = exec.Command(cmd, args...).Start()
 }
+
 func onExit() {}
