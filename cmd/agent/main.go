@@ -2,251 +2,176 @@ package main
 
 import (
 	"context"
-	"errors"
-	"flag"
 	"fmt"
-	"log"
-	"net/http" // Thêm thư viện http
+	"net/http"
 	"os"
 	"os/exec"
 	"os/signal"
+	"path/filepath"
 	"runtime"
 	"syscall"
 	"time"
 
 	"github.com/getlantern/systray"
+	httpHandlers "github.com/unitechio/agent/httpReqHandlers"
 	"github.com/unitechio/agent/internal/config"
-	"github.com/unitechio/agent/internal/health"
-	"github.com/unitechio/agent/internal/identity"
-	"github.com/unitechio/agent/internal/policy"
 	"github.com/unitechio/agent/internal/scheduler"
-	"github.com/unitechio/agent/internal/sse"
+	"github.com/unitechio/agent/internal/sender"
+	"github.com/unitechio/agent/internal/storage"
 )
 
-const version = "1.0.0"
-
 func main() {
-	configPath := flag.String("config", getDefaultConfigPath(), "Path to configuration file")
-	showVersion := flag.Bool("version", false, "Show version and exit")
-	flag.Parse()
+	// Lấy đường dẫn config cố định từ thư mục chứa file thực thi
+	configPath := getDefaultConfigPath()
 
-	if *showVersion {
-		fmt.Printf("enterprise-agent v%s\n", version)
-		os.Exit(0)
-	}
-
-	logger := log.New(os.Stdout, "[AGENT] ", log.LstdFlags|log.Lshortfile)
-	logger.Printf("Starting enterprise-agent v%s", version)
-
-	// Context dùng chung cho agent
+	// Tạo context với khả năng cancel để quản lý lifecycle của agent
 	ctx, cancel := context.WithCancel(context.Background())
 
-	// Start agent ở background
+	// Chạy agent trong goroutine riêng để không block main thread
 	go func() {
-		if err := run(ctx, *configPath, logger); err != nil {
-			logger.Printf("Agent stopped with error: %v", err)
+		// Gọi hàm run để khởi động agent với context và config path
+		if err := run(ctx, configPath); err != nil {
+			// Nếu có lỗi, thoát systray
 			systray.Quit()
 		}
 	}()
 
-	// Signal handling
+	// Xử lý system signals để shutdown gracefully
 	go func() {
+		// Tạo channel để nhận signals
 		sigChan := make(chan os.Signal, 1)
+		// Đăng ký nhận các signal: SIGINT (Ctrl+C) và SIGTERM
 		signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
-		sig := <-sigChan
-		logger.Printf("Received signal: %v, shutting down...", sig)
+		// Chờ nhận signal
+		<-sigChan
+		// Khi nhận được signal, cancel context để dừng agent
 		cancel()
+		// Thoát systray
 		systray.Quit()
 	}()
 
+	// Khởi chạy system tray với callback onReady và onExit
 	systray.Run(onReady, func() {
-		logger.Println("Systray exiting")
+		// Khi systray exit, cancel context để dừng agent
 		cancel()
 	})
 }
 
-func run(ctx context.Context, configPath string, logger *log.Logger) error {
+func run(ctx context.Context, configPath string) error {
 	// =========================================================================
-	// SSE SETUP (UPDATED)
+	// LOAD CONFIGURATION
 	// =========================================================================
 
-	// 1. Khởi tạo SSE Logic Handler (Thư viện mới)
-	sseHandler := sse.NewServer(10)
+	// Load cấu hình từ file config
+	cfg, err := config.Load(configPath)
+	if err != nil {
+		// Nếu không tìm thấy file config, tạo config mặc định
+		if err == config.ErrConfigNotFound {
+			// Tạo config mặc định với port 9000 và refresh interval 3 giây (5 phút)
+			cfg = &config.Config{
+				Port:                   ":9000",
+				RefreshIntervalSeconds: 3,
+			}
+			// Lưu config mặc định vào file
+			if err := cfg.Save(configPath); err != nil {
+				// Bỏ qua lỗi nếu không lưu được config
+			}
+		} else {
+			// Trả về lỗi nếu không load được config
+			return fmt.Errorf("failed to load configuration: %w", err)
+		}
+	}
 
-	// 2. Thiết lập HTTP Server để lắng nghe
+	// =========================================================================
+	// SSE CLIENT POOL SETUP
+	// =========================================================================
+
+	// Tạo SSE client pool để quản lý các kết nối SSE
+	clientPool := httpHandlers.NewSSEClientPool()
+	// Set pool vào HandleSSE để handler có thể sử dụng
+	httpHandlers.SetClientPool(clientPool)
+
+	// =========================================================================
+	// STORAGE & SENDER SETUP
+	// =========================================================================
+
+	// Tạo storage để lưu trữ metrics
+	metricStorage := storage.NewSystemMetricDataStorage()
+	// Tạo UI sender để gửi dữ liệu đến clients
+	uiSender := sender.NewUISender(clientPool, metricStorage)
+
+	// =========================================================================
+	// HTTP LISTENER SETUP
+	// =========================================================================
+
+	// Tạo HTTP router mới
 	mux := http.NewServeMux()
-	mux.Handle("/sse", sseHandler) // Gắn SSE vào route /sse
+	// Đăng ký SSE handler cho route "/sse"
+	mux.HandleFunc("/sse", httpHandlers.HandleSSE)
 
+	// Tạo HTTP server với port từ config và handler đã định nghĩa
 	httpServer := &http.Server{
-		Addr:    ":9000",
+		Addr:    cfg.Port,
 		Handler: mux,
 	}
 
-	// 3. Chạy HTTP Server trong goroutine riêng
+	// Chạy HTTP server trong goroutine riêng để không block main loop
 	go func() {
-		logger.Println("SSE server started on :9000 (available at http://localhost:9000/sse)")
+		// Bắt đầu lắng nghe HTTP requests trên port đã cấu hình
 		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			logger.Printf("Error starting SSE HTTP server: %v", err)
+			// Bỏ qua lỗi nếu server đã được đóng
 		}
 	}()
 
 	// =========================================================================
-	// BOOTSTRAP & CONFIG
+	// JOB SCHEDULER SETUP
 	// =========================================================================
 
-	// Step 1: Try to load existing config
-	cfg, err := config.Load(configPath)
-
-	if errors.Is(err, config.ErrConfigNotFound) {
-		// Step 2: No config exists - enter bootstrap mode
-		logger.Println("No configuration found, starting bootstrap process...")
-
-		// Step 3: Create minimal bootstrap config from environment
-		cfg = config.NewBootstrapConfig()
-
-		logger.Printf("DEBUG: Loaded bootstrap config: OrgID='%s', InstallToken='%s'", cfg.OrgID, cfg.InstallToken)
-
-		if err := cfg.ValidateBootstrap(); err != nil {
-			return fmt.Errorf("bootstrap validation failed: %w\nPlease set ORG_ID and INSTALL_TOKEN environment variables", err)
-		}
-
-		// Step 4: Run bootstrap with retry
-		logger.Println("Starting bootstrap process...")
-		cfg, err = identity.RunBootstrap(ctx, cfg)
-		if err != nil {
-			return fmt.Errorf("bootstrap failed: %w", err)
-		}
-
-		// Step 5: Save the new config
-		if err := cfg.Save(configPath); err != nil {
-			return fmt.Errorf("failed to save config: %w", err)
-		}
-		logger.Println("Bootstrap successful, configuration saved")
-
-	} else if err != nil {
-		return fmt.Errorf("failed to load configuration: %w", err)
+	// Tạo và khởi động JobScheduler với config, storage và sender
+	jobScheduler := scheduler.NewJobScheduler(ctx, cfg, metricStorage, uiSender)
+	// Khởi động scheduler
+	if err := jobScheduler.Start(); err != nil {
+		return fmt.Errorf("failed to start job scheduler: %w", err)
 	}
-
-	// Step 7: Validate runtime configuration
-	if err := cfg.ValidateRuntime(); err != nil {
-		return fmt.Errorf("invalid runtime configuration: %w", err)
-	}
-
-	logger.Printf("Configuration loaded successfully (Agent ID: %s)", cfg.AgentID)
-
-	// =========================================================================
-	// COMPONENTS INITIALIZATION
-	// =========================================================================
-
-	// Step 8: Initialize identity manager
-	identityMgr, err := identity.NewManager(cfg, logger)
-	if err != nil {
-		return fmt.Errorf("failed to create identity manager: %w", err)
-	}
-
-	// Step 9: Check if re-bootstrap is needed (cert expiration)
-	if identityMgr.NeedsRebootstrap() {
-		logger.Println("Certificate expired or invalid, re-bootstrapping...")
-
-		cfg.Bootstrapped = false
-		cfg, err = identity.RunBootstrap(ctx, cfg)
-		if err != nil {
-			return fmt.Errorf("re-bootstrap failed: %w", err)
-		}
-
-		if err := cfg.Save(configPath); err != nil {
-			logger.Printf("Warning: failed to save config after re-bootstrap: %v", err)
-		}
-
-		identityMgr, err = identity.NewManager(cfg, logger)
-		if err != nil {
-			return fmt.Errorf("failed to recreate identity manager: %w", err)
-		}
-		logger.Println("Re-bootstrap successful")
-	}
-
-	// Step 10: Verify identity
-	if err := identityMgr.VerifyIdentity(); err != nil {
-		return fmt.Errorf("identity verification failed: %w", err)
-	}
-	logger.Printf("Identity verified: Agent ID = %s", identityMgr.GetAgentID())
-
-	// Step 11: Initialize policy engine
-	policyEngine, err := policy.NewEngine(cfg, identityMgr, logger)
-	if err != nil {
-		return fmt.Errorf("failed to create policy engine: %w", err)
-	}
-
-	if err := policyEngine.Refresh(ctx); err != nil {
-		logger.Printf("Warning: failed to fetch initial policy, using defaults: %v", err)
-	}
-
-	// Step 12: Initialize health monitor
-	healthMonitor := health.NewMonitor(cfg, identityMgr, logger)
-	healthMonitor.Start(ctx)
-
-	// Step 13: Initialize scheduler
-	sched := scheduler.New(cfg, policyEngine, identityMgr, logger)
-	if err := sched.Start(ctx); err != nil {
-		return fmt.Errorf("failed to start scheduler: %w", err)
-	}
-
-	logger.Println("Agent running successfully")
+	// Đảm bảo scheduler được dừng khi hàm kết thúc
+	defer jobScheduler.Stop()
 
 	// =========================================================================
 	// MAIN LOOP & SHUTDOWN
 	// =========================================================================
 
-	ticker := time.NewTicker(5 * time.Minute)
-	defer ticker.Stop()
+	// Chờ cho đến khi nhận signal shutdown
+	<-ctx.Done()
 
-	for {
-		select {
-		case <-ctx.Done():
-			logger.Println("Shutting down agent...")
+	// Khi context bị cancel (nhận shutdown signal)
+	// Dừng JobScheduler
+	jobScheduler.Stop()
 
-			// Stop components gracefully
-			sched.Stop()
-			healthMonitor.Stop()
-
-			// SSE Cleanup:
-			// 1. Dừng logic SSE (heartbeat, channel)
-			sseHandler.Shutdown()
-
-			// 2. Dừng HTTP Listener
-			shutdownCtx, cancelShutdown := context.WithTimeout(context.Background(), 5*time.Second)
-			defer cancelShutdown()
-			if err := httpServer.Shutdown(shutdownCtx); err != nil {
-				logger.Printf("Error shutting down HTTP server: %v", err)
-			} else {
-				logger.Println("SSE HTTP server stopped")
-			}
-
-			return nil
-
-		case <-ticker.C:
-			// Periodic policy refresh
-			if err := policyEngine.Refresh(ctx); err != nil {
-				logger.Printf("Failed to refresh policy: %v", err)
-			}
-		}
+	// Tạo context với timeout 5 giây cho graceful shutdown
+	shutdownCtx, cancelShutdown := context.WithTimeout(context.Background(), 5*time.Second)
+	// Đảm bảo cancel được gọi khi hàm kết thúc
+	defer cancelShutdown()
+	// Dừng HTTP server một cách graceful
+	if err := httpServer.Shutdown(shutdownCtx); err != nil {
+		// Bỏ qua lỗi nếu có
 	}
+
+	// Trả về nil để báo shutdown thành công
+	return nil
 }
 
-// ... (Các hàm helper getDefaultConfigPath, onReady, openBrowser giữ nguyên)
 func getDefaultConfigPath() string {
-	if path := os.Getenv("AGENT_CONFIG"); path != "" {
-		return path
+	// Lấy đường dẫn file thực thi hiện tại
+	execPath, err := os.Executable()
+	if err != nil {
+		// Nếu không lấy được đường dẫn thực thi, fallback về thư mục hiện tại
+		execPath, _ = os.Getwd()
 	}
 
-	switch runtime.GOOS {
-	case "windows":
-		return `C:\ProgramData\unitechio\Agent\config.json`
-	case "darwin":
-		return "/Library/Application Support/unitechio/agent/config.json"
-	default: // Linux
-		return "/etc/unitechio/agent/config.json"
-	}
+	// Lấy thư mục chứa file thực thi
+	execDir := filepath.Dir(execPath)
+	// Tạo đường dẫn config.json trong cùng thư mục với file thực thi
+	return filepath.Join(execDir, "config.json")
 }
 
 func onReady() {
@@ -260,7 +185,7 @@ func onReady() {
 		for {
 			select {
 			case <-mOpen.ClickedCh:
-				openBrowser("http://localhost:8080")
+				openBrowser("http://localhost:9000")
 			case <-mQuit.ClickedCh:
 				systray.Quit()
 				return
@@ -289,5 +214,3 @@ func openBrowser(url string) {
 
 	_ = exec.Command(cmd, args...).Start()
 }
-
-func onExit() {}

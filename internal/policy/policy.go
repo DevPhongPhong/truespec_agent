@@ -1,5 +1,10 @@
 package policy
 
+// NOTE: This file contains code for policy engine that requires identity.Manager
+// and config fields (APIBaseURL, CollectionInterval) which are not yet implemented.
+// This code is commented out until these dependencies are available.
+
+/*
 import (
 	"context"
 	"encoding/json"
@@ -21,7 +26,9 @@ type Engine struct {
 	mu       sync.RWMutex
 	current  *Policy
 }
+*/
 
+/*
 // Policy represents the agent's runtime configuration
 type Policy struct {
 	Version    string                     `json:"version"`
@@ -160,3 +167,4 @@ func defaultPolicy() *Policy {
 		},
 	}
 }
+*/

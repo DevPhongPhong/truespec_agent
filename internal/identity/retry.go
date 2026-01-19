@@ -17,7 +17,7 @@ type RetryConfig struct {
 	Jitter       bool          // Add random jitter to prevent thundering herd
 }
 
-// DefaultRetryConfig returns sensible defaults for bootstrap retries
+// DefaultRetryConfig returns sensible defaults for retries
 func DefaultRetryConfig() RetryConfig {
 	return RetryConfig{
 		InitialDelay: 5 * time.Second,

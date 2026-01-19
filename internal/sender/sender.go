@@ -1,5 +1,10 @@
 package sender
 
+// NOTE: This file contains code for backend telemetry sender that requires identity.Manager
+// which is not yet implemented. Currently only UISender (in ui_sender.go) is used.
+// This code is commented out until identity.Manager is implemented.
+
+/*
 import (
 	"bytes"
 	"context"
@@ -235,3 +240,4 @@ func (s *Sender) Start(ctx context.Context) {
 		}
 	}()
 }
+*/
