@@ -21,6 +21,8 @@ type SSEClient struct {
 	stopHeartbeat chan struct{}
 	// Con trỏ đến node tiếp theo trong danh sách liên kết
 	next *SSEClient
+	// Mutex để bảo vệ Writer khi tin nhắn được gửi (tránh data race với heartbeat)
+	mu sync.Mutex
 }
 
 // SSEClientPool quản lý pool các client SSE đang kết nối
@@ -93,6 +95,19 @@ func (p *SSEClientPool) Add(w http.ResponseWriter, r *http.Request) (*SSEClient,
 	return client, nil
 }
 
+// Send gửi dữ liệu đến client một cách an toàn (thread-safe)
+func (c *SSEClient) Send(data []byte) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	_, err := c.Writer.Write(data)
+	if err != nil {
+		return err
+	}
+	c.Flusher.Flush()
+	return nil
+}
+
 // startHeartbeat gửi heartbeat mỗi 5 giây để giữ kết nối sống
 func (p *SSEClientPool) startHeartbeat(client *SSEClient) {
 	ticker := time.NewTicker(5 * time.Second)
@@ -105,7 +120,10 @@ func (p *SSEClientPool) startHeartbeat(client *SSEClient) {
 			return
 		case <-ticker.C:
 			// Gửi heartbeat (chỉ flush, không gửi data)
+			// Sử dụng lock để tránh conflict với việc gửi data
+			client.mu.Lock()
 			client.Flusher.Flush()
+			client.mu.Unlock()
 		case <-client.Request.Context().Done():
 			// Context đã bị cancel (client disconnect)
 			return
@@ -196,4 +214,3 @@ func (p *SSEClientPool) Clear() {
 	p.head = nil
 	p.clientMap = make(map[string]*SSEClient)
 }
-

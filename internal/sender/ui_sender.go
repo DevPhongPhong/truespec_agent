@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/unitechio/agent/httpReqHandlers"
+	httpHandlers "github.com/unitechio/agent/httpReqHandlers"
 	"github.com/unitechio/agent/internal/storage"
 )
 
@@ -30,13 +30,20 @@ func (u *UISender) SendData() error {
 	metricData := u.metricStorage.Get()
 
 	// Format dữ liệu theo chuẩn SSE
-	message, err := u.formatSSEMessage("data", metricData)
+	// Sử dụng event "message" (default) để client dễ dàng nhận được qua onmessage
+	message, err := u.formatSSEMessage("message", metricData)
 	if err != nil {
 		return fmt.Errorf("failed to format SSE message: %w", err)
 	}
 
 	// Lấy tất cả clients đang kết nối
 	clients := u.clientPool.GetAllClients()
+
+	if len(clients) == 0 {
+		return nil
+	}
+
+	fmt.Println("clients", len(clients))
 
 	// Gửi dữ liệu đến từng client
 	var failedClients []string
@@ -66,15 +73,10 @@ func (u *UISender) sendToClient(client *httpHandlers.SSEClient, message []byte) 
 		// Context vẫn còn valid, tiếp tục gửi
 	}
 
-	// Ghi dữ liệu vào ResponseWriter
-	_, err := client.Writer.Write(message)
-	if err != nil {
-		// Lỗi khi ghi, client có thể đã disconnect
+	// Sử dụng phương thức Send an toàn (thread-safe) của SSEClient
+	if err := client.Send(message); err != nil {
 		return fmt.Errorf("failed to write to client %s: %w", client.ID, err)
 	}
-
-	// Flush để gửi dữ liệu ngay lập tức
-	client.Flusher.Flush()
 
 	return nil
 }
@@ -119,4 +121,3 @@ func (u *UISender) SendCustomData(event string, data interface{}) error {
 
 	return nil
 }
-
