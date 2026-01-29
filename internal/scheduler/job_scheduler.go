@@ -59,7 +59,7 @@ func (js *JobScheduler) Start() error {
 
 	// Lấy refresh interval từ config
 	interval := js.cfg.GetRefreshInterval()
-
+	fmt.Println("interval", interval)
 	// Chạy goroutine để thu thập và gửi metrics theo interval
 	go js.runScheduler(interval)
 
@@ -106,7 +106,7 @@ func (js *JobScheduler) collectAndSendMetrics() {
 	js.metricStorage.Set(metricData)
 
 	// Gửi dữ liệu đến tất cả UI clients
-	if err := js.uiSender.SendData(); err != nil {
+	if err := js.uiSender.SendData("metrics"); err != nil {
 		// Nếu có lỗi khi gửi, bỏ qua (UISender đã tự động remove failed clients)
 	}
 }

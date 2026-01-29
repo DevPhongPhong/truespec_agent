@@ -25,13 +25,12 @@ func NewUISender(clientPool *httpHandlers.SSEClientPool, metricStorage *storage.
 }
 
 // SendData lấy dữ liệu từ SystemMetricDataStorage và gửi đến tất cả clients trong SSEClientPool
-func (u *UISender) SendData() error {
+func (u *UISender) SendData(event string) error {
 	// Lấy dữ liệu metric hiện tại từ storage
 	metricData := u.metricStorage.Get()
 
 	// Format dữ liệu theo chuẩn SSE
-	// Sử dụng event "message" (default) để client dễ dàng nhận được qua onmessage
-	message, err := u.formatSSEMessage("message", metricData)
+	message, err := u.formatSSEMessage(event, metricData)
 	if err != nil {
 		return fmt.Errorf("failed to format SSE message: %w", err)
 	}

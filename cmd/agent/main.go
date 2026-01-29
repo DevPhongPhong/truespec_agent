@@ -70,7 +70,7 @@ func run(ctx context.Context, configPath string) error {
 			// Tạo config mặc định với port 9000 và refresh interval 3 giây (5 phút)
 			cfg = &config.Config{
 				Port:                   ":9000",
-				RefreshIntervalSeconds: 3,
+				RefreshIntervalSeconds: 1,
 			}
 			// Lưu config mặc định vào file
 			if err := cfg.Save(configPath); err != nil {
