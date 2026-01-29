@@ -1,0 +1,335 @@
+/* ============================================================================
+   FAN PAGE SPECIFIC STYLES
+   ============================================================================ */
+
+.fanOverview {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+.fanIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: rgba(55, 208, 255, 0.1);
+  border: 2px solid rgba(55, 208, 255, 0.3);
+}
+
+.spinningFan {
+  color: var(--accent-cyan);
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.fanInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  flex: 1;
+}
+
+.fanHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.fanName {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.fanTypeBadge {
+  font-size: 11px;
+  padding: 2px 6px;
+}
+
+.fanRpm {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--accent-cyan);
+}
+
+.fanPwm {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* Status Dot */
+.statusDot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.statusDot[data-status="ok"] {
+  background: var(--status-ok);
+  box-shadow: 0 0 0 3px rgba(48, 230, 179, 0.25);
+}
+
+.statusDot[data-status="warn"] {
+  background: var(--status-warn);
+  box-shadow: 0 0 0 3px rgba(255, 159, 67, 0.25);
+}
+
+.statusDot[data-status="danger"] {
+  background: var(--status-danger);
+  box-shadow: 0 0 0 3px rgba(255, 77, 109, 0.25);
+}
+
+/* Presets */
+.presets {
+  margin-bottom: var(--space-5);
+}
+
+.presetsTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-3);
+}
+
+.presetButtons {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+/* Curve Preview */
+.curvePreview {
+  padding-top: var(--space-4);
+  border-top: 1px dashed var(--border-softer);
+}
+
+.curvePoints {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  height: 100px;
+  gap: var(--space-2);
+  padding-top: var(--space-3);
+}
+
+.curvePoint {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.curveTemp {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.curveBar {
+  width: 100%;
+  max-width: 30px;
+  height: 60px;
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+}
+
+.curveFill {
+  width: 100%;
+  background: linear-gradient(180deg, var(--accent-cyan), var(--accent-blue));
+  border-radius: inherit;
+  transition: height 0.3s ease;
+}
+
+.curvePwm {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--accent-cyan);
+}
+
+/* Sensor Mapping */
+.sensorMapping {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px dashed var(--border-softer);
+}
+
+.sensorMapping svg {
+  color: var(--accent-yellow);
+}
+
+.tempValue {
+  font-weight: 600;
+  color: var(--accent-yellow);
+}
+
+.sensorLabel {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* RPM Stats */
+.rpmStats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px dashed var(--border-softer);
+}
+
+.rpmStatItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.rpmStatLabel {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.rpmStatValue {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent-cyan);
+}
+
+.rpmStatWindow {
+  grid-column: 1 / -1;
+  text-align: center;
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: var(--space-1);
+}
+
+/* Anomaly Warning */
+.anomalyWarning {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.anomalyWarning[data-severity="ok"] {
+  background: var(--status-ok-bg);
+  color: var(--status-ok);
+  border: 1px solid var(--status-ok-border);
+}
+
+.anomalyWarning[data-severity="warn"] {
+  background: var(--status-warn-bg);
+  color: var(--status-warn);
+  border: 1px solid var(--status-warn-border);
+}
+
+.anomalyWarning[data-severity="danger"] {
+  background: var(--status-danger-bg);
+  color: var(--status-danger);
+  border: 1px solid var(--status-danger-border);
+}
+
+.anomalyWarning svg {
+  flex-shrink: 0;
+}
+
+/* Action Buttons */
+.actionButtons {
+  margin-bottom: var(--space-5);
+}
+
+/* Custom Slider */
+.customSlider {
+  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px dashed var(--border-softer);
+}
+
+.sliderLabel {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-3);
+}
+
+.slider {
+  width: 100%;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: rgba(15, 23, 42, 0.6);
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  margin-bottom: var(--space-2);
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent-cyan);
+  cursor: pointer;
+  box-shadow: 0 0 0 4px rgba(55, 208, 255, 0.2);
+  transition: all 0.2s ease;
+}
+
+.slider::-webkit-slider-thumb:hover {
+  box-shadow: 0 0 0 6px rgba(55, 208, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent-cyan);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 0 0 4px rgba(55, 208, 255, 0.2);
+  transition: all 0.2s ease;
+}
+
+.slider::-moz-range-thumb:hover {
+  box-shadow: 0 0 0 6px rgba(55, 208, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.slider::-moz-range-track {
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: rgba(15, 23, 42, 0.6);
+}
+
+.sliderLabels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SSE Client Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        #messages {
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 400px;
+            overflow-y: auto;
+            background: #f9f9f9;
+            margin-top: 20px;
+        }
+        .message {
+            margin: 5px 0;
+            padding: 5px;
+            border-left: 3px solid #007bff;
+            background: white;
+        }
+        .error {
+            border-left-color: #dc3545;
+            background: #ffe6e6;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .connected {
+            color: green;
+        }
+        .disconnected {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>SSE Client Test</h1>
+    <p>Status: <span id="status" class="disconnected">Disconnected</span></p>
+    <button onclick="connect()">Connect</button>
+    <button onclick="disconnect()">Disconnect</button>
+    <button onclick="clearMessages()">Clear Messages</button>
+    
+    <h2>Messages:</h2>
+    <div id="messages"></div>
+
+    <script>
+        let eventSource = null;
+
+        function addMessage(text, isError = false) {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message' + (isError ? ' error' : '');
+            messageDiv.textContent = new Date().toLocaleTimeString() + ' - ' + text;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function connect() {
+            if (eventSource) {
+                addMessage('Already connected', true);
+                return;
+            }
+
+            addMessage('Connecting to http://localhost:9000/sse...');
+            eventSource = new EventSource('http://localhost:9000/sse');
+
+            eventSource.onopen = function() {
+                document.getElementById('status').textContent = 'Connected';
+                document.getElementById('status').className = 'connected';
+                addMessage('Connected to SSE server');
+            };
+
+            eventSource.onerror = function(error) {
+                let errorMsg = 'Connection error';
+                if (eventSource.readyState === EventSource.CONNECTING) {
+                    errorMsg = 'Connecting... (check if server is running on port 9000)';
+                } else if (eventSource.readyState === EventSource.CLOSED) {
+                    errorMsg = 'Connection closed. Server may be down or unreachable.';
+                }
+                addMessage(errorMsg + ' (readyState: ' + eventSource.readyState + ')', true);
+                document.getElementById('status').textContent = 'Error';
+                document.getElementById('status').className = 'disconnected';
+            };
+
+            eventSource.addEventListener('connected', function(e) {
+                const data = JSON.parse(e.data);
+                addMessage('Event: connected - ' + JSON.stringify(data, null, 2));
+            });
+
+            eventSource.addEventListener('heartbeat', function(e) {
+                const data = JSON.parse(e.data);
+                addMessage('Event: heartbeat - ' + JSON.stringify(data, null, 2));
+            });
+
+            // Listen for all events
+            eventSource.onmessage = function(e) {
+                addMessage('Message: ' + e.data);
+            };
+        }
+
+        function disconnect() {
+            if (eventSource) {
+                eventSource.close();
+                eventSource = null;
+                document.getElementById('status').textContent = 'Disconnected';
+                document.getElementById('status').className = 'disconnected';
+                addMessage('Disconnected from SSE server');
+            }
+        }
+
+        function clearMessages() {
+            document.getElementById('messages').innerHTML = '';
+        }
+
+        // Auto-connect on page load
+        window.onload = function() {
+            addMessage('Page loaded. Click Connect to start.');
+        };
+    </script>
+</body>
+</html>
+

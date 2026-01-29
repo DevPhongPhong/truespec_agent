@@ -1,0 +1,229 @@
+/* ============================================================================
+   PAGE HEADER STYLES
+   ============================================================================ */
+
+.header {
+  margin-bottom: var(--space-6);
+}
+
+/* Breadcrumbs */
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: 13px;
+  margin-bottom: var(--space-3);
+}
+
+.crumbLink {
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.crumbLink:hover {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.crumbSep {
+  color: var(--text-muted2);
+}
+
+.crumbCurrent {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* Title Row */
+.titleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.titleGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.action {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Subtitle */
+.subtitle {
+  margin: var(--space-2) 0 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+/* ============================================================================
+   INFO BAR - Uptime, Last Update, Top Issues
+   ============================================================================ */
+
+.infoBar {
+  margin-top: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  background: var(--panel-b);
+  border: 1px solid var(--border-softer);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Time Info - Uptime & Last Update */
+.timeInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  flex-wrap: wrap;
+}
+
+.timeItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.timeIcon {
+  color: var(--accent);
+  opacity: 0.8;
+}
+
+/* Top Issues */
+.issuesRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border-softer);
+}
+
+.issuesLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--status-warn);
+}
+
+.issuesList {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.issueChip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: var(--radius-full);
+  background: var(--status-warn-bg);
+  color: var(--status-warn);
+  border: 1px solid var(--status-warn-border);
+}
+
+.issue-ok {
+  background: var(--status-ok-bg);
+  color: var(--status-ok);
+  border-color: var(--status-ok-border);
+}
+
+.issue-warn {
+  background: var(--status-warn-bg);
+  color: var(--status-warn);
+  border-color: var(--status-warn-border);
+}
+
+.issue-danger {
+  background: var(--status-danger-bg);
+  color: var(--status-danger);
+  border-color: var(--status-danger-border);
+}
+
+/* ============================================================================
+   QUICK ACTIONS
+   ============================================================================ */
+
+.quickActions {
+  margin-top: var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.actionDivider {
+  width: 1px;
+  height: 24px;
+  background: var(--border-soft);
+  margin: 0 var(--space-2);
+}
+
+/* Eco Mode Button - Green accent */
+.ecoBtn {
+  color: var(--accent-green) !important;
+}
+
+.ecoBtn:hover {
+  background: rgba(74, 222, 128, 0.1) !important;
+}
+
+/* Performance Mode Button - Yellow/Orange accent */
+.perfBtn {
+  color: var(--accent-yellow) !important;
+}
+
+.perfBtn:hover {
+  background: rgba(251, 191, 36, 0.1) !important;
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+
+@media (max-width: 768px) {
+  .infoBar {
+    padding: var(--space-3);
+  }
+
+  .timeInfo {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+
+  .issuesRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .quickActions {
+    flex-wrap: wrap;
+  }
+
+  .actionDivider {
+    display: none;
+  }
+}

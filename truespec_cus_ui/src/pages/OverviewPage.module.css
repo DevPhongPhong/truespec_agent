@@ -1,0 +1,404 @@
+/* ============================================================================
+   OVERVIEW PAGE STYLES
+   ============================================================================ */
+
+.page {
+  animation: fadeIn 0.3s ease;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--space-4);
+}
+
+.cardLink {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.cardLink:hover {
+  text-decoration: none;
+}
+
+.metricCard {
+  height: 100%;
+}
+
+/* Gauge Row Layout */
+.gaugeRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.statsCol {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.statItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.statLabel {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.statValue {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* RAM Stats */
+.ramStats {
+  display: flex;
+  justify-content: space-between;
+  margin-top: var(--space-3);
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* Storage Stats */
+.storageStats {
+  display: flex;
+  justify-content: space-between;
+  margin-top: var(--space-3);
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* Network Stats */
+.networkStats {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.networkRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-1) 0;
+  border-bottom: 1px dashed rgba(55, 65, 81, 0.6);
+}
+
+.networkRow:last-child {
+  border-bottom: none;
+}
+
+.networkLabel {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.networkValue {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Battery */
+.batteryMain {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.batteryCircle {
+  position: relative;
+  width: 100px;
+  height: 100px;
+}
+
+.batterySvg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.batterySvg circle:last-child {
+  transition: stroke-dashoffset 0.5s ease;
+}
+
+.batteryPercent {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.batteryStats {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* Fan List */
+.fanList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.fanRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-1) 0;
+  border-bottom: 1px dashed rgba(55, 65, 81, 0.6);
+}
+
+.fanRow:last-child {
+  border-bottom: none;
+}
+
+.fanName {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.fanRpm {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-cyan);
+}
+
+/* Temperature Sensors */
+.tempSensors {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.tempSensorItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(55, 65, 81, 0.3);
+}
+
+.tempSensorHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tempSensorLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.tempSensorMain {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.tempSensorValue {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.tempCurrent {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.tempCurrent[data-status="ok"] {
+  color: var(--accent-green);
+}
+
+.tempCurrent[data-status="warn"] {
+  color: var(--accent-yellow);
+}
+
+.tempCurrent[data-status="danger"] {
+  color: var(--accent-red);
+}
+
+.tempMax {
+  font-size: 11px;
+  color: var(--text-secondary);
+  opacity: 0.8;
+}
+
+.tempTrend {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex: 1;
+  max-width: 120px;
+}
+
+.tempTrendIcon {
+  display: flex;
+  align-items: center;
+  color: var(--text-secondary);
+}
+
+/* Temperature Thresholds */
+.tempThresholds {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.tempThresholdBar {
+  position: relative;
+  height: 6px;
+  background: rgba(55, 65, 81, 0.5);
+  border-radius: 3px;
+  overflow: visible;
+  display: flex;
+  width: 100%;
+}
+
+.tempThresholdSegment {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.tempIndicator {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 12px;
+  height: 12px;
+  background: var(--text-primary);
+  border: 2px solid var(--bg-primary);
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+  transition: left 0.3s ease;
+}
+
+.tempThresholdLabels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+
+/* Temperature Info */
+.tempInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-top: var(--space-2);
+  border-top: 1px dashed rgba(55, 65, 81, 0.4);
+}
+
+.tempCause,
+.tempCooling {
+  display: flex;
+  gap: var(--space-2);
+  font-size: 11px;
+}
+
+.tempCauseLabel,
+.tempCoolingLabel {
+  color: var(--text-secondary);
+  font-weight: 500;
+  min-width: 70px;
+}
+
+.tempCauseText {
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.tempCoolingText {
+  flex: 1;
+  font-weight: 500;
+}
+
+.tempCoolingText[data-status="ok"] {
+  color: var(--accent-green);
+}
+
+.tempCoolingText[data-status="warn"] {
+  color: var(--accent-yellow);
+}
+
+.tempCoolingText[data-status="danger"] {
+  color: var(--accent-red);
+}
+
+/* Legacy Temperature Grid (kept for backward compatibility) */
+.tempGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+}
+
+.tempItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: var(--radius-md);
+}
+
+.tempLabel {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.tempValue {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.tempValue[data-status="ok"] {
+  color: var(--accent-green);
+}
+
+.tempValue[data-status="warn"] {
+  color: var(--accent-yellow);
+}
+
+.tempValue[data-status="danger"] {
+  color: var(--accent-red);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .gaugeRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+

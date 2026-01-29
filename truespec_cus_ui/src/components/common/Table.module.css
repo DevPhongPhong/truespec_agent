@@ -1,0 +1,110 @@
+/* ============================================================================
+   TABLE COMPONENT STYLES
+   ============================================================================ */
+
+.tableWrapper {
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-softer);
+  background: rgba(9, 18, 40, 0.22);
+  overflow: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 500px;
+}
+
+.compact .th,
+.compact .td {
+  padding: var(--space-2) var(--space-3);
+  font-size: 12px;
+}
+
+.th {
+  text-align: left;
+  padding: var(--space-3);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted2);
+  border-bottom: 1px solid var(--border-softer);
+  background: rgba(9, 18, 40, 0.16);
+}
+
+.td {
+  padding: var(--space-3);
+  font-size: 13px;
+  color: var(--text-primary);
+  border-bottom: 1px solid rgba(233, 241, 255, 0.06);
+  vertical-align: middle;
+}
+
+.tr:last-child .td {
+  border-bottom: none;
+}
+
+.clickable {
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.clickable:hover {
+  background: rgba(74, 163, 255, 0.06);
+}
+
+.selected {
+  background: rgba(55, 208, 255, 0.08);
+}
+
+.selected:hover {
+  background: rgba(55, 208, 255, 0.1);
+}
+
+.align-left {
+  text-align: left;
+}
+
+.align-center {
+  text-align: center;
+}
+
+.align-right {
+  text-align: right;
+}
+
+.emptyRow {
+  padding: var(--space-8);
+  text-align: center;
+  color: var(--text-muted2);
+  font-size: 13px;
+}
+
+/* Spec List */
+.specList {
+  margin: 0;
+  font-size: 13px;
+}
+
+.specRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+  border-bottom: 1px dashed rgba(55, 65, 81, 0.7);
+}
+
+.specRow:last-child {
+  border-bottom: none;
+}
+
+.specLabel {
+  color: var(--text-secondary);
+}
+
+.specValue {
+  font-weight: 500;
+  text-align: right;
+  color: var(--text-primary);
+}
+
