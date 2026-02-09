@@ -7,46 +7,34 @@ import { RAMData, RAMModule, RAMProcess, RAMSpecs, StatusLevel } from '../types'
 
 export class RAMModel extends ObservableModel<RAMData> {
   constructor(specs?: Partial<RAMSpecs>) {
-    const defaultModules: RAMModule[] = [
-      { slot: 'Slot 1', size: 8, brand: 'Samsung M471A1K43CB1-CTD', speed: 2133, type: 'DDR4' },
-      { slot: 'Slot 2', size: 8, brand: 'Micron 16ATF1G64HZ-2G1A2', speed: 2133, type: 'DDR4' },
-    ];
-
+    // Khởi tạo với dữ liệu minimal, sẽ được update từ API
     const defaultSpecs: RAMSpecs = {
-      totalSize: 16,
-      type: 'DDR4',
-      speed: 2133,
-      speedMTs: 4266, // MT/s (typically 2x MHz for DDR)
-      speedMode: 'XMP',
-      channels: 'Dual',
-      modules: defaultModules,
+      totalSize: 0,
+      type: '',
+      speed: 0,
+      speedMTs: 0,
+      speedMode: 'JEDEC',
+      channels: 'Single',
+      modules: [],
       ...specs,
     };
-
-    const defaultProcesses: RAMProcess[] = [
-      { pid: 1234, name: 'chrome.exe', memoryUsage: 2.4, percentage: 15 },
-      { pid: 2345, name: 'Code.exe', memoryUsage: 1.2, percentage: 7.5 },
-      { pid: 3456, name: 'VMware.exe', memoryUsage: 3.0, percentage: 18.75 },
-      { pid: 4567, name: 'discord.exe', memoryUsage: 0.6, percentage: 3.75 },
-      { pid: 5678, name: 'explorer.exe', memoryUsage: 0.3, percentage: 1.875 },
-    ];
 
     const initialData: RAMData = {
       id: 'ram-main',
       name: 'RAM',
       lastUpdated: new Date(),
       specs: defaultSpecs,
-      usedPercent: 79,
-      usedGB: 12.6,
-      freeGB: 3.4,
-      availableGB: 6.2, // Free + Cached
-      cachePercent: 10,
-      cacheGB: 2.8,
-      compressedGB: 0.5,
-      swapUsedGB: 0.2,
-      swapTotalGB: 8.0,
+      usedPercent: 0,
+      usedGB: 0,
+      freeGB: 0,
+      availableGB: 0,
+      cachePercent: 0,
+      cacheGB: 0,
+      compressedGB: 0,
+      swapUsedGB: 0,
+      swapTotalGB: 0,
       isSwapping: false,
-      topProcesses: defaultProcesses,
+      topProcesses: [],
       history: {
         usage: [],
         cache: [],
@@ -77,7 +65,7 @@ export class RAMModel extends ObservableModel<RAMData> {
   }
 
   refresh(): void {
-
+    // Data được update từ HardwareDeviceService
   }
 
   getStatus(): StatusLevel {

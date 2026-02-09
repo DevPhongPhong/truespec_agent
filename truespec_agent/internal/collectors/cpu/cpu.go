@@ -1,3 +1,5 @@
+//go:build !windows
+
 package cpu
 
 import (
@@ -34,6 +36,8 @@ func CPUInfo(ctx context.Context) (interface{}, error) {
 		result["model"] = cpuInfo[0].ModelName
 		result["mhz"] = cpuInfo[0].Mhz
 		result["vendor"] = cpuInfo[0].VendorID
+		result["base_clock_mhz"] = int(cpuInfo[0].Mhz)
+		result["max_clock_mhz"] = int(cpuInfo[0].Mhz)
 	}
 
 	return result, nil

@@ -42,8 +42,6 @@ func (u *UISender) SendData(event string) error {
 		return nil
 	}
 
-	fmt.Println("clients", len(clients))
-
 	// Gửi dữ liệu đến từng client
 	var failedClients []string
 	for _, client := range clients {

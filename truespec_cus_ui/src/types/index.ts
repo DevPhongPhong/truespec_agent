@@ -102,6 +102,7 @@ export interface CPUSpecs {
   baseClock: number;
   turboClock: number;
   socket: string;
+  serialNumber: string;
   tdp: number;
   l1Cache: string;
   l2Cache: string;
@@ -112,6 +113,7 @@ export interface CPUSpecs {
 export interface CPUData extends BaseMetric {
   specs: CPUSpecs;
   load: number;
+  coreLoads: number[];
   temperature: number;
   power: number;
   currentClock: number;

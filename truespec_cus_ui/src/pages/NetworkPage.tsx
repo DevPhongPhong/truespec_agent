@@ -7,12 +7,12 @@ import { Wifi, Globe, Router, AlertTriangle } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, Table, SpecList, SpecRow, Badge, StatusDot } from '../components/common';
 import { AreaChart, mergeTimeSeriesForChart } from '../components/charts';
 import { PageHeader } from '../components/layout';
-import { useNetwork } from '../hooks';
+import { useHardwareNetwork } from '../hooks';
 import { NetworkAdapter, WiFiFrequencyBand, DNSStatus } from '../types';
 import styles from './DetailPage.module.css';
 
 export const NetworkPage: React.FC = () => {
-  const { data, model } = useNetwork();
+  const { data, model, loading, error } = useHardwareNetwork();
 
   const chartData = mergeTimeSeriesForChart([
     { key: 'download', points: model.getHistory('download') },

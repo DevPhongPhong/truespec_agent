@@ -7,12 +7,28 @@ import { Monitor } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, Gauge, Table, SpecList, SpecRow, Badge, ProgressBar } from '../components/common';
 import { AreaChart, mergeTimeSeriesForChart, Sparkline } from '../components/charts';
 import { PageHeader } from '../components/layout';
-import { useGPU } from '../hooks';
+import { useHardwareGPU } from '../hooks';
 import { GPUEngine, GPUProcess, TimeSeriesPoint } from '../types';
 import styles from './DetailPage.module.css';
 
 export const GPUPage: React.FC = () => {
-  const { data, model } = useGPU();
+  const { data: gpuArray, models, loading, error } = useHardwareGPU();
+  
+  // Lấy GPU đầu tiên để hiển thị (hoặc có thể hiển thị tất cả)
+  const model = gpuArray.length > 0 ? gpuArray[0] : null;
+  const data = model?.data;
+
+  // Early return nếu không có GPU
+  if (!model || !data) {
+    return (
+      <div className={styles.page}>
+        <PageHeader title="GPU Detail" breadcrumbs={[{ label: 'Tổng quan', path: '/overview' }, { label: 'GPU' }]} />
+        <div style={{ padding: '2rem', textAlign: 'center' }}>
+          {loading ? 'Đang tải dữ liệu GPU...' : error ? `Lỗi: ${error.message}` : 'Không tìm thấy GPU'}
+        </div>
+      </div>
+    );
+  }
 
   const chartData = mergeTimeSeriesForChart([
     { key: 'usage', points: model.getHistory('usage') },

@@ -7,45 +7,39 @@ import { NetworkData, NetworkAdapter, NetworkConnection, StatusLevel, WiFiStanda
 
 export class NetworkModel extends ObservableModel<NetworkData> {
   constructor() {
+    // Khởi tạo với dữ liệu minimal, sẽ được update từ API
     const defaultConnection: NetworkConnection = {
-      ssid: 'Home_5G',
-      type: 'Wi-Fi',
-      security: 'WPA2',
-      status: 'Online',
-      ipv4: '192.168.42.8',
-      gateway: '192.168.42.1',
-      dns: '8.8.8.8',
-      publicIP: '203.0.113.42',
-      linkSpeed: 300,
-      signalStrength: 82,
-      adapterName: 'Intel Wi-Fi',
-      wifiStandard: WiFiStandard.WIFI_6,
-      frequencyBand: WiFiFrequencyBand.BAND_5_GHZ,
-      rssi: -45, // dBm
-      jitter: 2.5, // ms
-      dnsStatus: DNSStatus.WORKING,
+      ssid: '',
+      type: 'Ethernet',
+      security: '',
+      status: 'Offline',
+      ipv4: '',
+      gateway: '',
+      dns: '',
+      publicIP: '',
+      linkSpeed: 0,
+      signalStrength: 0,
+      adapterName: '',
+      wifiStandard: WiFiStandard.WIFI_5,
+      frequencyBand: WiFiFrequencyBand.BAND_2_4_GHZ,
+      rssi: 0,
+      jitter: 0,
+      dnsStatus: DNSStatus.UNKNOWN,
     };
-
-    const defaultAdapters: NetworkAdapter[] = [
-      { name: 'Intel Wi-Fi', type: 'Wi-Fi', status: 'up', ipv4: '192.168.42.8', mac: 'AA:BB:CC:DD:EE:FF' },
-      { name: 'Ethernet', type: 'Ethernet', status: 'down', mac: '11:22:33:44:55:66' },
-      { name: 'VMware Network Adapter', type: 'Virtual', status: 'up', ipv4: '192.168.100.1' },
-      { name: 'Bluetooth PAN', type: 'Bluetooth', status: 'down' },
-    ];
 
     const initialData: NetworkData = {
       id: 'network-main',
       name: 'Network',
       lastUpdated: new Date(),
       connection: defaultConnection,
-      adapters: defaultAdapters,
-      ping: 23,
-      currentDownload: 3.2,
-      currentUpload: 0.6,
-      totalReceived: 1.8 * 1024, // MB
-      totalSent: 620,
-      packetLoss: 0.2,
-      natType: 'Moderate',
+      adapters: [],
+      ping: 0,
+      currentDownload: 0,
+      currentUpload: 0,
+      totalReceived: 0,
+      totalSent: 0,
+      packetLoss: 0,
+      natType: 'Unknown',
       history: {
         download: [],
         upload: [],
@@ -78,7 +72,7 @@ export class NetworkModel extends ObservableModel<NetworkData> {
   }
 
   refresh(): void {
-
+    // Data được update từ HardwareDeviceService
   }
 
   getStatus(): StatusLevel {

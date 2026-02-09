@@ -11,7 +11,7 @@ export interface AgentConfig {
 }
 
 const DEFAULT_CONFIG: AgentConfig = {
-  baseUrl: import.meta.env.VITE_AGENT_URL || 'http://localhost:9000/api',
+  baseUrl: import.meta.env.VITE_AGENT_URL || 'http://localhost:9000',
   timeout: 15000,
 };
 

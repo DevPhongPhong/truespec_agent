@@ -108,6 +108,13 @@ func run(ctx context.Context, configPath string) error {
 	mux := http.NewServeMux()
 	// Đăng ký SSE handler cho route "/sse"
 	mux.HandleFunc("/sse", httpHandlers.HandleSSE)
+	// Đăng ký hardware handlers
+	mux.HandleFunc("/hardware", httpHandlers.HandleHardware)
+	mux.HandleFunc("/hardware/cpu", httpHandlers.HandleCPU)
+	mux.HandleFunc("/hardware/gpu", httpHandlers.HandleGPU)
+	mux.HandleFunc("/hardware/ram", httpHandlers.HandleRAM)
+	mux.HandleFunc("/hardware/storage", httpHandlers.HandleStorage)
+	mux.HandleFunc("/hardware/network", httpHandlers.HandleNetwork)
 
 	// Tạo HTTP server với port từ config và handler đã định nghĩa
 	httpServer := &http.Server{

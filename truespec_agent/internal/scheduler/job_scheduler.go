@@ -92,8 +92,6 @@ func (js *JobScheduler) runScheduler(interval time.Duration) {
 
 // collectAndSendMetrics thu thập metrics từ hệ thống, lưu vào storage và gửi đến clients
 func (js *JobScheduler) collectAndSendMetrics() {
-	fmt.Println("collectAndSendMetrics at", time.Now())
-
 	// Thu thập tất cả metrics
 	metricData, err := js.collectMetrics()
 	if err != nil {
@@ -101,7 +99,6 @@ func (js *JobScheduler) collectAndSendMetrics() {
 		return
 	}
 
-	fmt.Println("metricData", metricData)
 	// Lưu vào storage
 	js.metricStorage.Set(metricData)
 

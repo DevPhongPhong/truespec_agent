@@ -7,12 +7,12 @@ import { MemoryStick, AlertTriangle, Info } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, Gauge, Table, SpecList, SpecRow, ProgressBar, Badge } from '../components/common';
 import { AreaChart, mergeTimeSeriesForChart } from '../components/charts';
 import { PageHeader } from '../components/layout';
-import { useRAM } from '../hooks';
+import { useHardwareRAM } from '../hooks';
 import { RAMModule, RAMProcess } from '../types';
 import styles from './DetailPage.module.css';
 
 export const RAMPage: React.FC = () => {
-  const { data, model } = useRAM();
+  const { data, model, loading, error } = useHardwareRAM();
 
   const chartData = mergeTimeSeriesForChart([
     { key: 'usage', points: model.getHistory('usage') },

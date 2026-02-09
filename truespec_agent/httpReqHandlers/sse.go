@@ -38,6 +38,13 @@ func GetClientPool() *SSEClientPool {
 var count = 0
 
 func HandleSSE(w http.ResponseWriter, r *http.Request) {
+	// Handle CORS preflight OPTIONS request
+	if r.Method == http.MethodOptions {
+		CORSHeaders(w)
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
 	fmt.Println("HandleSSE" + strconv.Itoa(count))
 	// Thiết lập headers cho SSE
 	w.Header().Set("Content-Type", "text/event-stream")

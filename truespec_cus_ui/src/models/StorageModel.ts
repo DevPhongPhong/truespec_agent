@@ -7,30 +7,26 @@ import { StorageData, Partition, SMARTData, StorageSpecs, StatusLevel } from '..
 
 export class StorageModel extends ObservableModel<StorageData> {
   constructor(specs?: Partial<StorageSpecs>) {
+    // Khởi tạo với dữ liệu minimal, sẽ được update từ API
     const defaultSpecs: StorageSpecs = {
-      name: 'Samsung NVMe SSD',
-      model: 'MZHPV5120GL',
-      type: 'NVMe',
-      interface: 'PCIe NVMe',
-      pcieGen: 'Gen4',
-      totalCapacity: 512,
+      name: 'Unknown Storage',
+      model: '',
+      type: 'SSD',
+      interface: '',
+      pcieGen: undefined,
+      totalCapacity: 0,
       ...specs,
     };
 
-    const defaultPartitions: Partition[] = [
-      { letter: 'C:', label: 'System', fileSystem: 'NTFS', usedGB: 86, totalGB: 153, usedPercent: 56 },
-      { letter: 'D:', label: 'Data', fileSystem: 'NTFS', usedGB: 200, totalGB: 359, usedPercent: 56 },
-    ];
-
     const defaultSMART: SMARTData = {
-      healthPercent: 96,
-      powerOnHours: 3200,
-      powerCycles: 680,
-      totalBytesWritten: 18.4,
+      healthPercent: 100,
+      powerOnHours: 0,
+      powerCycles: 0,
+      totalBytesWritten: 0,
       reallocatedSectors: 0,
       pendingSectors: 0,
       mediaErrors: 0,
-      temperature: 42,
+      temperature: undefined,
       status: 'Good',
     };
 
@@ -39,18 +35,18 @@ export class StorageModel extends ObservableModel<StorageData> {
       name: 'Storage',
       lastUpdated: new Date(),
       specs: defaultSpecs,
-      usedPercent: 56,
-      usedGB: 286,
-      freeGB: 226,
-      partitions: defaultPartitions,
+      usedPercent: 0,
+      usedGB: 0,
+      freeGB: 0,
+      partitions: [],
       smart: defaultSMART,
       performance: {
-        currentRead: 220,
-        currentWrite: 110,
-        peakRead: 1800,
-        peakWrite: 1200,
-        baselineRead: 3500,
-        baselineWrite: 3000,
+        currentRead: 0,
+        currentWrite: 0,
+        peakRead: 0,
+        peakWrite: 0,
+        baselineRead: 0,
+        baselineWrite: 0,
       },
       history: {
         read: [],
@@ -84,7 +80,7 @@ export class StorageModel extends ObservableModel<StorageData> {
   }
 
   refresh(): void {
-
+    // Data được update từ HardwareDeviceService
   }
 
   getStatus(): StatusLevel {

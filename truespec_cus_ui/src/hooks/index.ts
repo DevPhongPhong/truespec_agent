@@ -15,4 +15,12 @@ export {
 
 export { useTheme } from './useTheme';
 export { useSSEMonitor, useSSEMonitorAuto } from './useSSEMonitor';
+export {
+  useHardwareDevice,
+  useHardwareCPU,
+  useHardwareGPU,
+  useHardwareRAM,
+  useHardwareStorage,
+  useHardwareNetwork,
+} from './useHardwareDevice';
 

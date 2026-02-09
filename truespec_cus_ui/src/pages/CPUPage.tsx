@@ -8,12 +8,14 @@ import { Cpu, AlertTriangle, Zap } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, Gauge, Table, SpecList, SpecRow } from '../components/common';
 import { AreaChart, mergeTimeSeriesForChart, Sparkline } from '../components/charts';
 import { PageHeader } from '../components/layout';
-import { useCPU } from '../hooks';
+import { useHardwareCPU } from '../hooks';
+import { useMonitor } from '../hooks';
 import { CPUCore, CPUProcess } from '../types';
 import styles from './DetailPage.module.css';
 
 export const CPUPage: React.FC = () => {
-  const { data, model } = useCPU();
+  const { data, model, loading, error } = useHardwareCPU();
+  const { cpu: cpuData } = useMonitor();
 
   const chartData = mergeTimeSeriesForChart([
     { key: 'usage', points: model.getHistory('usage') },
@@ -83,7 +85,7 @@ export const CPUPage: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className={styles.gaugeCenter}>
-              <Gauge value={data.load} size="lg" color="auto" label="Load" />
+              <Gauge value={cpuData.data.load} size="lg" color="auto" label="Load" />
             </div>
             <div className={styles.quickStats}>
               <div className={styles.quickStat}>
@@ -204,6 +206,7 @@ export const CPUPage: React.FC = () => {
               <SpecRow label="Base Clock" value={`${data.specs.baseClock} GHz`} />
               <SpecRow label="Turbo Clock" value={`${data.specs.turboClock} GHz`} />
               <SpecRow label="Socket" value={data.specs.socket} />
+              <SpecRow label="Serial Number" value={data.specs.serialNumber || '-'} />
               <SpecRow label="TDP" value={`${data.specs.tdp} W`} />
               <SpecRow label="L1 Cache" value={data.specs.l1Cache} />
               <SpecRow label="L2 Cache" value={data.specs.l2Cache} />
@@ -220,7 +223,7 @@ export const CPUPage: React.FC = () => {
           <CardContent>
             <Table<CPUCore & Record<string, unknown>>
               columns={coreColumns}
-              data={data.coreData as (CPUCore & Record<string, unknown>)[]}
+              data={cpuData.data.coreData as (CPUCore & Record<string, unknown>)[]}
               keyExtractor={(row) => `core-${row.coreIndex}`}
               compact
             />

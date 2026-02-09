@@ -7,6 +7,7 @@ export * from './SystemMetricsResDTO';
 
 // Hardware Info
 export * from './HardwareInfoResDTO';
+export * from './HardwareDeviceResDTO';
 
 // Alerts
 export * from './AlertReqDTO';
